@@ -24,7 +24,8 @@ public class GameManager : MonoBehaviour
      private void Awake()
      {
          if (Instance != null && Instance != this)
-         {
+         { //MudarEstado(GameState.Iniciando);
+            // Debug.Log(estadoAtual); (tentativa 01)
              Debug.Log("Destruindo cópia/outra instância do GameManager.");
              Destroy(this.gameObject); 
              return;
@@ -36,7 +37,11 @@ public class GameManager : MonoBehaviour
      #endregion
      private void Start()
      {
-          
+         if (SceneManager.GetActiveScene().name == "_Boot")
+         {
+             MudarEstado(GameState.Iniciando);
+             Debug.Log($"<color=cyan>[GameManager]</color> Estado: <b>{estadoAtual}</b>");
+         }
          CarregarCena("Cena_Splash");
      }
  
@@ -88,7 +93,7 @@ public class GameManager : MonoBehaviour
          SceneManager.sceneLoaded -= AoTerminarDeCarregar;
  
         
-         if (cena.name == "Cena_MenuPrincipal") 
+         if (cena.name == "Menu") 
              MudarEstado(GameState.MenuPrincipal);
          else if (cena.name == "GetStarted_Scene") 
              MudarEstado(GameState.Gameplay);
