@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
      {
          if (Instance != null && Instance != this)
          {
-             Debug.Log("Destruindo instância duplicada do GameManager.");
+             Debug.Log("Destruindo cópia/outra instância do GameManager.");
              Destroy(this.gameObject); 
              return;
          }
@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
                  
                  if (this != null && gameObject.activeInHierarchy && this.enabled)
                  {
-                     StopAllCoroutines(); // Limpa corrotinas anteriores para evitar conflitos
+                     StopAllCoroutines(); 
                      StartCoroutine(AlocarInputAposCarregamento());
                  }
                  else
@@ -75,30 +75,29 @@ public class GameManager : MonoBehaviour
     
     public void CarregarCena(string nomeDaCena)
      {
-         // Em vez de mudar o estado imediatamente, vamos usar um evento da Unity
-         // que avisa quando a cena terminou de carregar.
+         
          SceneManager.LoadScene(nomeDaCena);
          
-         // Subscrevemos temporariamente a um evento da Unity
+       
          SceneManager.sceneLoaded += AoTerminarDeCarregar;
      }
  
      private void AoTerminarDeCarregar(Scene cena, LoadSceneMode modo)
      {
-         // 1. Removemos o evento para não disparar de novo na próxima cena
+        
          SceneManager.sceneLoaded -= AoTerminarDeCarregar;
  
-         // 2. Agora que a cena carregou, mudamos o estado com segurança
+        
          if (cena.name == "Cena_MenuPrincipal") 
              MudarEstado(GameState.MenuPrincipal);
          else if (cena.name == "GetStarted_Scene") 
              MudarEstado(GameState.Gameplay);
      }
  
-     // 5. Alocação de Inputs (Input System)
+    
      private IEnumerator AlocarInputAposCarregamento()
      {
-         // Espera um frame para garantir que os objetos da cena foram instanciados
+         
          yield return new WaitForEndOfFrame();
  
          _playerInputNaCena = FindFirstObjectByType<PlayerInput>();
@@ -106,8 +105,7 @@ public class GameManager : MonoBehaviour
          if (_playerInputNaCena != null)
          {
              Debug.Log("<color=green>[GameManager]</color> Input alocado com sucesso ao Player.");
-             // No single player, o PlayerInput já costuma pegar o input padrão, 
-             // mas aqui você pode forçar esquemas de controle se necessário:
+             
              _playerInputNaCena.ActivateInput();
          }
          else
@@ -116,10 +114,10 @@ public class GameManager : MonoBehaviour
          }
      }
  
-     // Função para o botão Sair
+     
      public void SairDoJogo()
      {
-         Debug.Log("Saindo do jogo...");
+         Debug.Log("Quitting");
          Application.Quit();
      }
 }
