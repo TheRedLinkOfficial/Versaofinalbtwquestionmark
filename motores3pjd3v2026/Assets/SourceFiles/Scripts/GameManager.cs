@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using System.Collections;
 
 public class GameManager : MonoBehaviour
-{ // 1. Enum com os estados solicitados
+{ 
      public enum GameState
      {
          Iniciando,
@@ -12,13 +12,13 @@ public class GameManager : MonoBehaviour
          Gameplay
      }
  
-     // 2. Implementação Singleton
+     
      public static GameManager Instance { get; private set; }
  
      [Header("Configurações")]
      public GameState estadoAtual;
      
-     // Referência para o Player que será buscado na cena de Gameplay
+     
      private PlayerInput _playerInputNaCena;
      #region Singleton
      private void Awake()
@@ -27,7 +27,7 @@ public class GameManager : MonoBehaviour
          {
              Debug.Log("Destruindo instância duplicada do GameManager.");
              Destroy(this.gameObject); 
-             return; // IMPORTANTE: Impede que o resto do código rode no objeto que vai morrer
+             return;
          }
  
          Instance = this;
@@ -36,11 +36,11 @@ public class GameManager : MonoBehaviour
      #endregion
      private void Start()
      {
-         // Como estamos na _Boot, vamos para a Splash automaticamente
+          
          CarregarCena("Cena_Splash");
      }
  
-     // 3. Gerenciamento de Estados com Debug.Log
+     
      public void MudarEstado(GameState novoEstado)
      {
          if (estadoAtual == novoEstado) return;
@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
          switch (estadoAtual)
          {
              case GameState.Gameplay:
-                 // Verificação de segurança tripla antes de iniciar a Corrotina
+                 
                  if (this != null && gameObject.activeInHierarchy && this.enabled)
                  {
                      StopAllCoroutines(); // Limpa corrotinas anteriores para evitar conflitos
@@ -59,8 +59,7 @@ public class GameManager : MonoBehaviour
                  }
                  else
                  {
-                     // Se ele estiver inativo agora, tentamos novamente em 0.1 segundos
-                     // O 'Invoke' funciona mesmo que o script esteja momentaneamente desativado
+                   
                      Invoke(nameof(TentarReativarGameplay), 0.1f);
                  }
                  break;
@@ -73,8 +72,7 @@ public class GameManager : MonoBehaviour
              StartCoroutine(AlocarInputAposCarregamento());
      }
  
-     // 4. Controle Único de Cenas
-     // Somente o GameManager acessa o SceneManager
+    
     public void CarregarCena(string nomeDaCena)
      {
          // Em vez de mudar o estado imediatamente, vamos usar um evento da Unity
