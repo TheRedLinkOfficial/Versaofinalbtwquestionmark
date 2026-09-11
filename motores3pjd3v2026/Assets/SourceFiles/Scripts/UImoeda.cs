@@ -1,7 +1,12 @@
 using UnityEngine;
 using TMPro;
+
 public class UImoeda : MonoBehaviour
 {
+    [Header("Player")]
+    [SerializeField] private int playerID = 1;
+
+    [Header("UI")]
     [SerializeField] private TextMeshProUGUI coinText;
     [SerializeField] private string prefixo = "Moedas: ";
 
@@ -17,22 +22,35 @@ public class UImoeda : MonoBehaviour
 
     private void Start()
     {
-        CoinEventManager.ResetCoins(); // Reseta ao iniciar a partida
-        coinText.color = Color.yellow; // Define a cor do texto para amarelo
-        AtualizarUI(0);
+        coinText.color = Color.yellow;
+
+        int total = 0;
+
+        if (playerID == 1)
+        {
+            total = CoinEventManager.GetPlayer1Coins();
+        }
+        else if (playerID == 2)
+        {
+            total = CoinEventManager.GetPlayer2Coins();
+        }
+
+        AtualizarUI(playerID, total);
     }
 
-    private void AtualizarUI(int total)
+    private void AtualizarUI(int id, int total)
     {
+        if (id != playerID)
+            return;
+
         if (coinText != null)
         {
             coinText.text = $"{prefixo}{total}";
         }
     }
 
-    // Método público caso queira atualizar manualmente
     public void AtualizarManual(int valor)
     {
-        AtualizarUI(valor);
+        AtualizarUI(playerID, valor);
     }
 }

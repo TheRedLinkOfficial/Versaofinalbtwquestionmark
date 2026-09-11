@@ -7,6 +7,9 @@ namespace StarterAssets
 {
 	public class StarterAssetsInputs : MonoBehaviour
 	{
+		[Header("Player")]
+		public int playerID = 1;
+
 		[Header("Character Input Values")]
 		public Vector2 move;
 		public Vector2 look;
@@ -20,20 +23,25 @@ namespace StarterAssets
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 
-
-
 #if ENABLE_INPUT_SYSTEM
-		
 
-		
 		public void OnMove(InputValue value)
 		{
-			MoveInput(value.Get<Vector2>());
+			// O movimento pelo PlayerInput será tratado abaixo
+			// de acordo com o ID do jogador.
+			if (playerID == 1)
+			{
+				MoveInput(value.Get<Vector2>());
+			}
+			else if (playerID == 2)
+			{
+				MoveInput(value.Get<Vector2>());
+			}
 		}
 
 		public void OnLook(InputValue value)
 		{
-			if(cursorInputForLook)
+			if (cursorInputForLook)
 			{
 				LookInput(value.Get<Vector2>());
 			}
@@ -41,27 +49,40 @@ namespace StarterAssets
 
 		public void OnJump(InputValue value)
 		{
-			JumpInput(value.isPressed);
+			if (playerID == 1)
+			{
+				JumpInput(value.isPressed);
+			}
+			else if (playerID == 2)
+			{
+				JumpInput(value.isPressed);
+			}
 		}
 
 		public void OnSprint(InputValue value)
 		{
-			SprintInput(value.isPressed);
+			if (playerID == 1)
+			{
+				SprintInput(value.isPressed);
+			}
+			else if (playerID == 2)
+			{
+				SprintInput(value.isPressed);
+			}
 		}
+
 #endif
 
-			private void Awake()
-	{
-		SetCursorState(cursorLocked);
-		Cursor.visible = false;
-
-		
-	}
+		private void Awake()
+		{
+			SetCursorState(cursorLocked);
+			Cursor.visible = false;
+		}
 
 		public void MoveInput(Vector2 newMoveDirection)
 		{
 			move = newMoveDirection;
-		} 
+		}
 
 		public void LookInput(Vector2 newLookDirection)
 		{
@@ -85,11 +106,11 @@ namespace StarterAssets
 
 		private void SetCursorState(bool newState)
 		{
-			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
-			Cursor.visible = !newState;  
-			
+			Cursor.lockState = newState
+				? CursorLockMode.Locked
+				: CursorLockMode.None;
 
+			Cursor.visible = !newState;
 		}
 	}
-	
 }

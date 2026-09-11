@@ -1,40 +1,56 @@
 using UnityEngine;
-
 using System;
 
-public class CoinEventManager
+public static class CoinEventManager
 {
-    // Evento principal - disparado quando o jogador coleta uma moeda
-    public static event Action<int> OnCoinCollected;
+    public static event Action<int, int> OnCoinCollected;
+    public static event Action<int, int> OnTotalCoinsChanged;
 
-    // Evento para quando o total de moedas mudar (útil para UI)
-    public static event Action<int> OnTotalCoinsChanged;
+    private static int _player1Coins = 0;
+    private static int _player2Coins = 0;
 
-    /// <summary>
-    /// Chame este método quando uma moeda for coletada
-    /// </summary>
-    public static void CollectCoin(int amount = 1)
+    public static void AddCoins(int playerID, int amount)
     {
-        OnCoinCollected?.Invoke(amount);
-        OnTotalCoinsChanged?.Invoke(GetCurrentTotal()); // Atualiza UI
+        if (playerID == 1)
+        {
+            _player1Coins += amount;
+
+            OnCoinCollected?.Invoke(playerID, amount);
+            OnTotalCoinsChanged?.Invoke(playerID, _player1Coins);
+
+            Debug.Log(
+                $"[CoinEventManager] Player 1 +{amount} | Total: {_player1Coins}"
+            );
+        }
+        else if (playerID == 2)
+        {
+            _player2Coins += amount;
+
+            OnCoinCollected?.Invoke(playerID, amount);
+            OnTotalCoinsChanged?.Invoke(playerID, _player2Coins);
+
+            Debug.Log(
+                $"[CoinEventManager] Player 2 +{amount} | Total: {_player2Coins}"
+            );
+        }
     }
 
-    // Variável estática para guardar o total durante a partida
-    private static int _totalCoins = 0;
-
-    public static int GetCurrentTotal() => _totalCoins;
-
-    public static void AddCoins(int amount)
+    public static int GetPlayer1Coins()
     {
-        _totalCoins += amount;
-        OnTotalCoinsChanged?.Invoke(_totalCoins);
-        Debug.Log($"<color=yellow>[CoinEventManager]</color> +{amount} moedas | Total: {_totalCoins}");
+        return _player1Coins;
+    }
+
+    public static int GetPlayer2Coins()
+    {
+        return _player2Coins;
     }
 
     public static void ResetCoins()
     {
-        _totalCoins = 0;
-        OnTotalCoinsChanged?.Invoke(0);
+        _player1Coins = 0;
+        _player2Coins = 0;
+
+        OnTotalCoinsChanged?.Invoke(1, 0);
+        OnTotalCoinsChanged?.Invoke(2, 0);
     }
 }
-
