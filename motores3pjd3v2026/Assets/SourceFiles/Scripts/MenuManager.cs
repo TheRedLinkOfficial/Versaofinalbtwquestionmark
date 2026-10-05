@@ -6,7 +6,7 @@ public class MenuManager : MonoBehaviour
 {
     public void Startgame()
     {
-        GameManager.Instance.CarregarCena("GetStarted_Scene");
+        GameManager.Instance.LoadScene("GetStarted_Scene");
     }
   public void quitGame()
   {

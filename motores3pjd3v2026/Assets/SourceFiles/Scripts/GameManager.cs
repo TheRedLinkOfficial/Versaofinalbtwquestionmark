@@ -1,155 +1,158 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
-using System.Collections;
 
 public class GameManager : MonoBehaviour
-{ 
-     public enum GameState
-     {
-         Iniciando,
-         MenuPrincipal,
-         Gameplay
-     }
- 
-     public static GameManager Instance { get; private set; }
- 
-     [Header("Configurações")]
-     public GameState estadoAtual;
-     
-     [Header("Cenas")]
-     public string CenaGUI = "CenaGUI"; // Declarada a variável que faltava
+{
+    #region Singleton
 
-     private PlayerInput _playerInputNaCena;
+    public static GameManager Instance;
 
-     #region Singleton
-     private void Awake()
-     {
-         if (Instance != null && Instance != this)
-         { 
-             Debug.Log("Destruindo cópia/outra instância do GameManager.");
-             Destroy(this.gameObject); 
-             return;
-         }
- 
-         Instance = this;
-         DontDestroyOnLoad(this.gameObject);
-     }
-     #endregion
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
 
-     private void Start()
-     {
-         if (SceneManager.GetActiveScene().name == "_Boot")
-         {
-             MudarEstado(GameState.Iniciando);
-             Debug.Log($"<color=cyan>[GameManager]</color> Estado: <b>{estadoAtual}</b>");
-         }
-         CarregarCena("Cena_Splash");
-     }
- 
-     public void MudarEstado(GameState novoEstado)
-     {
-         if (estadoAtual == novoEstado) return;
- 
-         estadoAtual = novoEstado;
-         Debug.Log($"<color=cyan>[GameManager]</color> Estado: <b>{estadoAtual}</b>");
- 
-         switch (estadoAtual)
-         {
-             case GameState.Gameplay:
-                 if (this != null && gameObject.activeInHierarchy && this.enabled)
-                 {
-                     StopAllCoroutines(); 
-                     StartCoroutine(AlocarInputAposCarregamento());
-                     StartCoroutine(ConfigurarGameplayRoutine()); // Chamando a rotina aqui
-                 }
-                 else
-                 {
-                     Invoke(nameof(TentarReativarGameplay), 0.1f);
-                 }
-                 break;
-         }
-     }
- 
-     private void TentarReativarGameplay()
-     {
-         if (gameObject.activeInHierarchy)
-         {
-             StartCoroutine(AlocarInputAposCarregamento());
-             StartCoroutine(ConfigurarGameplayRoutine());
-         }
-     }
- 
-     public void CarregarCena(string nomeDaCena)
-     {
-         SceneManager.LoadScene(nomeDaCena);
-         SceneManager.sceneLoaded += AoTerminarDeCarregar;
-     }
- 
-     private void AoTerminarDeCarregar(Scene cena, LoadSceneMode modo)
-     {
-         SceneManager.sceneLoaded -= AoTerminarDeCarregar;
- 
-         if (cena.name == "Menu") 
-             MudarEstado(GameState.MenuPrincipal);
-         else if (cena.name == "GetStarted_Scene") 
-             MudarEstado(GameState.Gameplay);
-     }
- 
-     // Corrotina movida para fora de CarregarCena()
-     private IEnumerator ConfigurarGameplayRoutine()
-     {
-         yield return new WaitForEndOfFrame();
+            // Escuta mudança de cena
+            SceneManager.sceneLoaded += OnSceneLoaded;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
-         // Agora a função IsSceneLoaded vai funcionar corretamente
-         if (!IsSceneLoaded(CenaGUI))
-         {
-             Debug.Log($"<color=green>[GameManager]</color> Carregando CenaGUI de forma aditiva...");
-             SceneManager.LoadSceneAsync(CenaGUI, LoadSceneMode.Additive);
-         }
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+    }
 
-         _playerInputNaCena = Object.FindFirstObjectByType<PlayerInput>();
-         if (_playerInputNaCena != null)
-         {
-             _playerInputNaCena.ActivateInput();
-             Debug.Log("<color=green>[GameManager]</color> PlayerInput ativado.");
-         }
-     }
- 
-     private IEnumerator AlocarInputAposCarregamento()
-     {
-         yield return new WaitForEndOfFrame();
- 
-         _playerInputNaCena = FindFirstObjectByType<PlayerInput>();
- 
-         if (_playerInputNaCena != null)
-         {
-             Debug.Log("<color=green>[GameManager]</color> Input alocado com sucesso ao Player.");
-             _playerInputNaCena.ActivateInput();
-         }
-         else
-         {
-             Debug.LogWarning("[GameManager] PlayerInput não encontrado na cena de Gameplay.");
-         }
-     }
- 
-     // FUNÇÃO EXTRA: Verifica se a cena aditiva já está carregada para não duplicar
-     private bool IsSceneLoaded(string nomeDaCena)
-     {
-         for (int i = 0; i < SceneManager.sceneCount; i++)
-         {
-             Scene cena = SceneManager.GetSceneAt(i);
-             if (cena.name == nomeDaCena)
-             {
-                 return true;
-             }
-         }
-         return false;
-     }
+    #endregion
 
-     public void SairDoJogo()
-     {
-         Debug.Log("Quitting");
-         Application.Quit();
-     }
+    #region Game State
+
+    public enum GameState
+    {
+        Iniciando,
+        MenuPrincipal,
+        Gameplay
+    }
+
+    public GameState CurrentState;
+
+    public void SetState(GameState newState)
+    {
+        CurrentState = newState;
+        Debug.Log("Estado atual: " + CurrentState);
+    }
+
+    #endregion
+
+    #region Scene Management
+
+    public void LoadScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
+    }
+
+    #endregion
+
+    #region Input Allocation
+
+    [SerializeField] private PlayerInput playerInput;
+
+    public void AssignPlayerInput(PlayerInput input)
+    {
+        playerInput = input;
+        Debug.Log("Input atribuído ao jogador.");
+    }
+
+    void FindPlayerInput()
+    {
+        PlayerInput input = FindObjectOfType<PlayerInput>();
+
+        if (input != null)
+        {
+            AssignPlayerInput(input);
+        }
+        else
+        {
+            Debug.LogWarning("Nenhum PlayerInput encontrado na cena.");
+        }
+    }
+
+    #endregion
+
+    #region Boot Flow
+
+    private void Start()
+    {
+        // Só roda lógica se estiver na cena _Boot
+        if (SceneManager.GetActiveScene().name == "_Boot")
+        {
+            SetState(GameState.Iniciando);
+
+            // Vai direto pro Splash sem Invoke bugado
+            StartCoroutine(BootSequence());
+        }
+    }
+
+    System.Collections.IEnumerator BootSequence()
+    {
+        yield return new WaitForSeconds(2f);
+        LoadScene("Cena_Splash");
+    }
+
+    #endregion
+
+    #region Scene Events
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Sempre limpa qualquer coisa pendente
+        StopAllCoroutines();
+
+        // Define estado automaticamente por cena
+        if (scene.name == "MenuPrincipal")
+        {
+            SetState(GameState.MenuPrincipal);
+        }
+        else if (scene.name == "GetStarted_Scene")
+        {
+            SetState(GameState.Gameplay);
+
+          
+      
+
+           
+            if (!IsSceneLoaded("GUI"))
+            {
+                SceneManager.LoadScene("GUI", LoadSceneMode.Additive);
+            }
+
+            // Aqui faz a alocação de input quando o player existir
+            Invoke(nameof(FindPlayerInput), 0.5f);
+        }
+    }
+
+    #endregion
+
+    #region Utils
+
+    bool IsSceneLoaded(string name)
+    {
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            if (SceneManager.GetSceneAt(i).name == name)
+                return true;
+        }
+        return false;
+    }
+
+    #endregion
 }
